@@ -3,7 +3,7 @@
 A static invitation site with two design versions:
 
 - `/royal` (royal.html) — Royal maroon & gold: velvet curtain intro, gold arch, scratch-to-reveal date, countdown.
-- `/emerald` (emerald.html) — Ivory & emerald: envelope intro, lanterns, mosque skyline, ring countdown.
+- `/navy` (navy.html) — Navy blue & gold on ivory: envelope intro, lanterns, mosque skyline, ring countdown.
 
 Nikkah: Saturday, 9 January 2027 (30 Rajab 1448 AH), onwards 11:00 AM, Jumma Masjid & Anwarul Qudisiya Marriage Hall, S.P. Pattinam.
 
