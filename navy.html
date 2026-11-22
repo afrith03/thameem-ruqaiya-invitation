@@ -25,6 +25,7 @@
   --f-body: 'Cormorant Garamond', 'Garamond', 'Times New Roman', serif;
   --f-caps: 'Marcellus', 'Trajan Pro', 'Times New Roman', serif;
   --f-arabic: 'Amiri', 'Traditional Arabic', serif;
+  --mt-bg: rgba(15,29,74,.88); --mt-line: #eed596;
   color-scheme: light;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -195,6 +196,15 @@ body.pre .hero-item { opacity: 0; transform: translateY(12px); }
 .intro.open { opacity: 0; visibility: hidden; pointer-events: none; }
 .petals { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
 
+.music-toggle { position: fixed; z-index: 45; top: 14px; right: max(14px, calc(50% - 235px + 14px)); width: 42px; height: 42px; border-radius: 50%;
+  display: none; align-items: center; justify-content: center; gap: 2.5px; cursor: pointer; padding: 0;
+  background: var(--mt-bg); border: 1px solid var(--mt-line); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+.music-toggle.show { display: flex; }
+.music-toggle span { width: 2.5px; height: 6px; border-radius: 2px; background: var(--mt-line); }
+.music-toggle.playing span { animation: eq .9s ease-in-out infinite alternate; }
+.music-toggle span:nth-child(2) { animation-delay: -.3s; } .music-toggle span:nth-child(3) { animation-delay: -.6s; } .music-toggle span:nth-child(4) { animation-delay: -.15s; }
+@keyframes eq { from { height: 5px; } to { height: 17px; } }
+.music-toggle:focus-visible { outline: 2px solid var(--mt-line); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01s !important; transition-delay: 0s !important; }
 }
@@ -207,7 +217,8 @@ body.pre .hero-item { opacity: 0; transform: translateY(12px); }
 <noscript><style>.intro { display: none; } body.pre .hero-item { opacity: 1; transform: none; }</style></noscript>
 </head>
 <body class="locked pre">
-<!-- AUDIO SLOT: add <audio id="bgm" src="..." loop preload="auto"></audio> here; it starts when the envelope opens. -->
+<audio id="bgm" src="/music.mp3" loop preload="auto"></audio>
+<button class="music-toggle" id="musicToggle" type="button" aria-label="Pause music"><span></span><span></span><span></span><span></span></button>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -619,6 +630,19 @@ const Flora = (() => {
   paint();
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(paint, 150); });
 
+
+  /* background music: plays /music.mp3 when the invitation opens; button stays hidden if the file is missing */
+  const bgm = document.getElementById('bgm'), mt = document.getElementById('musicToggle');
+  let audioOk = !bgm.error;
+  bgm.addEventListener('error', () => { audioOk = false; mt.classList.remove('show'); });
+  function setPlaying(on) { mt.classList.toggle('playing', on); mt.setAttribute('aria-label', on ? 'Pause music' : 'Play music'); }
+  function startMusic() {
+    if (!audioOk || bgm.error) return;
+    bgm.volume = .75;
+    bgm.play().then(() => { mt.classList.add('show'); setPlaying(true); }).catch(() => { if (audioOk && !bgm.error) { mt.classList.add('show'); setPlaying(false); } });
+  }
+  mt.addEventListener('click', () => { if (bgm.paused) { bgm.play().then(() => setPlaying(true)).catch(() => {}); } else { bgm.pause(); setPlaying(false); } });
+
   /* the stage sits inside a centred grid; nudge it so the seal lands on the flap tip */
   const intro = document.getElementById('intro');
   const seal = document.getElementById('seal');
@@ -629,8 +653,7 @@ const Flora = (() => {
   function openInvite() {
     if (intro.classList.contains('open')) return;
     intro.classList.add('open');
-    const bgm = document.getElementById('bgm');
-    if (bgm) bgm.play().catch(() => {});
+    startMusic();
     setTimeout(() => document.body.classList.remove('pre'), 2700);
     setTimeout(() => { document.body.classList.remove('locked'); Flora.petals(document.getElementById('petals'), ['#ffffff', '#f6dcd2', '#eed596', '#fff4e6'], 7000); }, 2800);
     setTimeout(() => intro.remove(), 3800);
